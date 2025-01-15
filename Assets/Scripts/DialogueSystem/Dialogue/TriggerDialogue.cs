@@ -1,6 +1,4 @@
-using Monologue.StoryInput;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Monologue.Dialogue
 {
@@ -10,8 +8,8 @@ namespace Monologue.Dialogue
         [SerializeField] private GameObject _VisualCue;
         [Header("Ink JSON")]
         [SerializeField] TextAsset _InkJSON;
-        // FIXME: FLAG
         bool _IsPlayerInRange;
+
         private void Awake()
         {
             _VisualCue.SetActive(false);
@@ -19,12 +17,12 @@ namespace Monologue.Dialogue
 
         void Update()
         {
-            if(!(DialogueManager.Instance.IsDialogueActive || StoryInputTextFieldManager.Instance.ActiveInputPanel) && _IsPlayerInRange)
+            if(!DialogueManager.Instance.IsDialogueActive && _IsPlayerInRange)
                 _VisualCue.SetActive(true);
             else
                 _VisualCue.SetActive(false);
             
-            if (DialogueManager.Instance.IsDialogueActive || StoryInputTextFieldManager.Instance.ActiveInputPanel || !_IsPlayerInRange)
+            if (DialogueManager.Instance.IsDialogueActive || !_IsPlayerInRange)
                 return;
 
             if(Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.F))

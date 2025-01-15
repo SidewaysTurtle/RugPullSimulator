@@ -15,12 +15,6 @@ namespace Monologue.Dialogue
 {
     public class StoryFunctions
     {
-        public delegate void OnEmoji(string emojiName, string characterTag);
-        public static event OnEmoji OnEmojiEvent;
-
-        public delegate void OnMoveTo(string characterTag, int x, int y, float delay, bool disappear);
-        public static event OnMoveTo OnMoveToEvent;
-
         public delegate void OnCameraSet(string cameraTag, bool goBack);
         public static event OnCameraSet OnCameraSetEvent;
 
@@ -36,6 +30,7 @@ namespace Monologue.Dialogue
                 return new List<string>();
 
             if(tagValue[0] == '{' && tagValue[tagValue.Count()-1] =='}')
+                // FIXME: Gross hack
                 return tagValue.Remove(0).Remove(tagValue.Count()-1).Split(',').ToList();
             else
                 return new List<string>(){tagValue};
@@ -90,46 +85,10 @@ namespace Monologue.Dialogue
 
         public static void BindFunctions(Story story)
         {
-            // lambda optional parameters aren't avaiable until C# 12.0. Fucking Unity.
-            // and because the bind stores everything to a Dictonary I cannot create variant functions
-            story.BindExternalFunction("InputText",(string question, string key, string profile) =>
-            {
-                StoryInputTextFieldManager.Instance.EnterInputMode(question, key, profile);
-            });
-
-            story.BindExternalFunction("Emoji",(string emoteName, string characterTag) =>
-            {
-                List<string> listOfEmotes = TagtoList(emoteName);
-                List<string> listOfCharacters = TagtoList(characterTag);
-                
-                // It is only an issue if the number of emotes is more than the number of characters
-                if(listOfEmotes.Count() > listOfCharacters.Count())
-                    return;
-
-                for(int i = 0; i < listOfCharacters.Count(); i++)
-                    // if the character list is larger than the emote list, then just play the same emote for all of them.
-                    OnEmojiEvent?.Invoke( i >= listOfEmotes.Count() ? listOfEmotes[^1] : listOfEmotes[i], listOfCharacters[i]);
-            });
-
-            // story.BindExternalFunction("CreateQuest",(int id, string questName, string questBody, string iconName, string color) => 
-            // {
-            //     QuestManager.Instance._QuestPanel.Add(id,questName,questBody,iconName,color);
-            // });
-
-            // story.BindExternalFunction("SetCamera", (string cameraTag, bool goBack) => 
-            // {
-            //     OnCameraSetEvent?.Invoke( cameraTag, goBack );
-            // });
-
             story.BindExternalFunction("SetCamera", (string cameraTag) => 
             {
                 // FIXME: Because it doesnt wait for the anaimation to end before continuing, it can reach ends where it tries to look for camera null
                 OnCameraSetEvent?.Invoke( cameraTag, false ); // will fix later
-            });
-
-            story.BindExternalFunction("MoveTo", (string characterTag, int x, int y, float delay, bool disappear) => 
-            {
-                OnMoveToEvent?.Invoke(characterTag,x,y,delay,disappear);
             });
 
             story.BindExternalFunction("ChangeScene", (string sceneName) =>
@@ -140,11 +99,7 @@ namespace Monologue.Dialogue
 
         public static void UnbindFunctions(Story story)
         {
-            story.UnbindExternalFunction("InputText");
-            story.UnbindExternalFunction("Emoji");
-            // story.UnbindExternalFunction("CreateQuest");
             story.UnbindExternalFunction("SetCamera");
-            story.UnbindExternalFunction("MoveTo");
             story.UnbindExternalFunction("ChangeScene");
         }
 

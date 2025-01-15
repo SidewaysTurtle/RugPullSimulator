@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Ink.Runtime;
-using Monologue.StoryInput;
 using SimpleMan.CoroutineExtensions;
 
 namespace Monologue.Dialogue
@@ -17,9 +16,6 @@ namespace Monologue.Dialogue
         public static event OnDialogue OnDialogueEndEvent;
         public static event OnDialogue OnDialogueContinuedEvent;
         public static event OnDialogue OnDialogueTryingToContinueEvent;
-        public delegate void OnChoice(List<string> choices);
-        public static event OnChoice OnChoiceEvent;
-
         public delegate void OnDialogueContent(string text);
         public static event OnDialogueContent OnDialogueContentEvent;
 
@@ -54,9 +50,6 @@ namespace Monologue.Dialogue
         {
             // FIXME: Passes up the Event, because I cannot invoke an event that isnt in the file. (in DialoguePrefab)
             Panel.OnChoiceSelectedEvent += ChoiceSelected;
-
-            StoryInputTextFieldManager.OnStoryInputStartEvent += OnEnterInputMode;
-            StoryInputTextFieldManager.OnStoryInputEndEvent += OnExitInputMode;
             DontDestroyHelper.NotDestroyedHelperEvent += DeactivatePanel;
         }
         void DeactivatePanel()
@@ -67,20 +60,7 @@ namespace Monologue.Dialogue
         void OnDisable()
         {
             Panel.OnChoiceSelectedEvent -= ChoiceSelected;
-            
-            StoryInputTextFieldManager.OnStoryInputStartEvent -= OnEnterInputMode;
-            StoryInputTextFieldManager.OnStoryInputEndEvent -= OnExitInputMode;
             DontDestroyHelper.NotDestroyedHelperEvent -= DeactivatePanel;
-        }
-        void OnEnterInputMode()
-        {
-            IsDialogueActive = false;
-        }
-
-        void OnExitInputMode()
-        {
-            IsDialogueActive = true;
-            ContinueStory();
         }
         void Update()
         {
@@ -88,8 +68,6 @@ namespace Monologue.Dialogue
             && !IsWaiting)
                 ContinueStory();
         }
-        // FIXME: stupid flag variable
-        bool _isAlreadyContinued;
         public void ContinueStory()
         {
             OnDialogueTryingToContinueEvent?.Invoke();
@@ -98,18 +76,7 @@ namespace Monologue.Dialogue
             
             if(CurrentStory.canContinue)
             {
-                //FIXME: this is awful.
-                if(!_isAlreadyContinued)
-                {
-                    CurrentStory.Continue();
-                    
-                    _isAlreadyContinued = true;
-                }
-                if(_isAlreadyContinued && StoryInputTextFieldManager.Instance.ActiveInputPanel)
-                {
-                    return;   
-                }
-                _isAlreadyContinued = false;
+                CurrentStory.Continue();
                 
                 if(CurrentStory.currentText == "" && !CurrentStory.canContinue)
                     ExitDialogMode();

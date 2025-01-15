@@ -42,7 +42,7 @@ public class CinemachineCameraManager : MonoBehaviour
     void AddCameras(Scene scene0, Scene scene1)
     {
         _Cameras = new();
-        List<CinemachineCamera> _AllCameras = FindObjectsOfType<CinemachineCamera>(true).ToList();
+        List<CinemachineCamera> _AllCameras = FindObjectsByType<CinemachineCamera>(FindObjectsSortMode.InstanceID).ToList();
         foreach(var cam in _AllCameras)
             _Cameras.Add(cam.name, cam);
     }
