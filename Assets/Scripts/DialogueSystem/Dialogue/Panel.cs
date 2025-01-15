@@ -140,5 +140,43 @@ namespace Monologue.Dialogue
         {
             OnChoiceSelectedEvent?.Invoke(option);
         }
+
+        void OnEnable()
+        {
+            DialogueManager.OnDialogueStartEvent += OnDialogueStart;
+            DialogueManager.OnDialogueEndEvent += OnDialogueEnd;
+            DialogueManager.OnDialogueContentEvent += OnDialogueContent;
+            DialogueManager.OnChoicesPresentedEvent += OnChoicesPresented;
+        }
+
+        void OnDisable()
+        {
+            DialogueManager.OnDialogueStartEvent -= OnDialogueStart;
+            DialogueManager.OnDialogueEndEvent -= OnDialogueEnd;
+            DialogueManager.OnDialogueContentEvent -= OnDialogueContent;
+            DialogueManager.OnChoicesPresentedEvent -= OnChoicesPresented;
+        }
+
+        private void OnDialogueStart()
+        {
+            gameObject.SetActive(true);
+            EnterDialogueMode();
+        }
+
+        private void OnDialogueEnd()
+        {
+            ExitDialogueMode();
+            gameObject.SetActive(false);
+        }
+
+        private void OnDialogueContent(string text)
+        {
+            DialogueText = text;
+        }
+
+        private void OnChoicesPresented(List<string> choices)
+        {
+            DialogueOptions = choices;
+        }
     }
 }

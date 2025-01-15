@@ -1,9 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
 using UnityEngine;
-
 using Ink.Runtime;
 using Monologue.StoryInput;
 using SimpleMan.CoroutineExtensions;
@@ -21,6 +19,12 @@ namespace Monologue.Dialogue
         public static event OnDialogue OnDialogueTryingToContinueEvent;
         public delegate void OnChoice(List<string> choices);
         public static event OnChoice OnChoiceEvent;
+
+        public delegate void OnDialogueContent(string text);
+        public static event OnDialogueContent OnDialogueContentEvent;
+
+        public delegate void OnChoicesPresented(List<string> choices);
+        public static event OnChoicesPresented OnChoicesPresentedEvent;
         
         [Header("Globals Ink")]
         [SerializeField] TextAsset m_GlobalsJSON;
@@ -28,22 +32,16 @@ namespace Monologue.Dialogue
         [Header("Dialogue UI")]
         public Story CurrentStory;
         
-        // Prefabs
-        public Panel _DialoguePanel;
+        // Remove Panel reference
+        // public Panel _DialoguePanel;
 
-        // Public
-        public bool ActiveDialoguePanel
+        private bool _isDialogueActive;
+        public bool IsDialogueActive 
         {
-            get
-            {
-                // FIXME: Psuedo flag variable. Its actually worse, creating edge cases.
-                return _DialoguePanel.gameObject.activeSelf;
-            }
-            set
-            {
-                _DialoguePanel.gameObject.SetActive(value);
-            }
+            get => _isDialogueActive;
+            private set => _isDialogueActive = value;
         }
+
         void Awake()
         {
             if (!Instance)
@@ -64,7 +62,7 @@ namespace Monologue.Dialogue
         void DeactivatePanel()
         {
             ChangeSceneOnLoadDontDestroy.Instance.NextScene();
-            ActiveDialoguePanel = false;
+            IsDialogueActive = false;
         }
         void OnDisable()
         {
@@ -76,12 +74,12 @@ namespace Monologue.Dialogue
         }
         void OnEnterInputMode()
         {
-            ActiveDialoguePanel = false;
+            IsDialogueActive = false;
         }
 
         void OnExitInputMode()
         {
-            ActiveDialoguePanel = true;
+            IsDialogueActive = true;
             ContinueStory();
         }
         void Update()
@@ -95,7 +93,7 @@ namespace Monologue.Dialogue
         public void ContinueStory()
         {
             OnDialogueTryingToContinueEvent?.Invoke();
-            if (!ActiveDialoguePanel)
+            if (!IsDialogueActive)
                 return;
             
             if(CurrentStory.canContinue)
@@ -118,14 +116,14 @@ namespace Monologue.Dialogue
                 
                 OnDialogueContinuedEvent?.Invoke();
 
-                // Strange bug with LINQ where it tries to send every Selected thing first before it tolists and sets.
-                // tried it with a parentetical and it didnt work either. 
-                var t = CurrentStory.currentChoices.Select(ctx => ctx.text).ToList();
-                _DialoguePanel.DialogueOptions = new();
-                if(t.Count > 0)
-                    OnChoiceEvent?.Invoke(t);
+                // Emit dialogue content
+                OnDialogueContentEvent?.Invoke(CurrentStory.currentText);
 
-                _DialoguePanel.DialogueText = CurrentStory.currentText;
+                // Emit choices if any
+                var choices = CurrentStory.currentChoices.Select(ctx => ctx.text).ToList();
+                if(choices.Count > 0)
+                    OnChoicesPresentedEvent?.Invoke(choices);
+
                 StoryFunctions.HandleTags(CurrentStory);
             }
             else
@@ -136,13 +134,12 @@ namespace Monologue.Dialogue
         public void EnterDialogMode(TextAsset inkAsset)
         {
             OnDialogueStartEvent?.Invoke();
+            IsDialogueActive = true;
 
             CurrentStory = new Story(inkAsset.text);
             StoryFunctions.BindFunctions(CurrentStory);
             GlobalVars.StartListening(CurrentStory);
-            _DialoguePanel.EnterDialogueMode();
-            ActiveDialoguePanel = true;
-            // Starts the story
+            
             ContinueStory();
         }
 
@@ -150,9 +147,7 @@ namespace Monologue.Dialogue
         {
             StoryFunctions.UnbindFunctions(CurrentStory);
             GlobalVars.StopListening(CurrentStory);
-            _DialoguePanel.ExitDialogueMode();
-            ActiveDialoguePanel = false;
-            
+            IsDialogueActive = false;
             OnDialogueEndEvent?.Invoke();
         }
 
