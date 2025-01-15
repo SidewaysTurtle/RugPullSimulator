@@ -19,12 +19,12 @@ namespace Monologue.Dialogue
 
         void Update()
         {
-            if(!(DialogueManager.Instance.ActiveDialoguePanel || StoryInputTextFieldManager.Instance.ActiveInputPanel) && _IsPlayerInRange)
+            if(!(DialogueManager.Instance.IsDialogueActive || StoryInputTextFieldManager.Instance.ActiveInputPanel) && _IsPlayerInRange)
                 _VisualCue.SetActive(true);
             else
                 _VisualCue.SetActive(false);
             
-            if (DialogueManager.Instance.ActiveDialoguePanel || StoryInputTextFieldManager.Instance.ActiveInputPanel || !_IsPlayerInRange)
+            if (DialogueManager.Instance.IsDialogueActive || StoryInputTextFieldManager.Instance.ActiveInputPanel || !_IsPlayerInRange)
                 return;
 
             if(Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.F))
