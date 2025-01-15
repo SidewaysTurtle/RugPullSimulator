@@ -55,7 +55,6 @@ namespace Monologue.Dialogue
                 switch(tagSplit[0].Trim())
                 {
                     case "speaker":
-                        DialogueManager.Instance._DialoguePanel.DialogueDisplayName = tagValue;
                         OnSpeakerEvent?.Invoke(tagValue);
                     break;
 
@@ -64,8 +63,8 @@ namespace Monologue.Dialogue
                     break;
 
                     case "image":
-                        DialogueManager.Instance._DialoguePanel.ProfileIncluded = true;
-                        DialogueManager.Instance._DialoguePanel.ProfileImage.sprite = Resources.Load<Sprite>($"Characters/Sample");// Resources.Load<Image>($"Characters/{tagValue}");
+                        // Image handling should be done by Panel through events
+                        OnSpeakerEvent?.Invoke(tagValue);  // Panel will handle the profile image
                     break;
 
                     // Format strings
@@ -75,11 +74,11 @@ namespace Monologue.Dialogue
                         string text = story.currentText;
                         foreach(string vars in listOfFormat)
                             text = text?.Replace($"<{vars}>",DialogueManager.Instance.GlobalVars[vars].ToString());
-                        DialogueManager.Instance._DialoguePanel.DialogueText = text;
+                        DialogueManager.EmitDialogueContent(text);  // Updated to use the static method
                     break;
 
                     case "cutscene":
-
+                        // Handle cutscene logic if needed
                     break;
                 }
             }

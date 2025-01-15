@@ -164,5 +164,10 @@ namespace Monologue.Dialogue
             ContinueStory();
         }
 
+        public static void EmitDialogueContent(string text)
+        {
+            OnDialogueContentEvent?.Invoke(text);
+        }
+
     }
 }
