@@ -22,6 +22,13 @@ public abstract class IconInventorySlot : MonoBehaviour
         }
         
     }   
+    public virtual void OnBeginDrag()
+    {
+    }
+
+    public virtual void OnEndDrag()
+    {
+    }
     protected virtual void SetSlot(Inventory inventory)
     {
         PhysicalRepresentation.SetActive(true);

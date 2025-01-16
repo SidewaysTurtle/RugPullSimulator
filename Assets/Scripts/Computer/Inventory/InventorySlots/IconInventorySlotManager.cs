@@ -51,4 +51,24 @@ public class IconInventorySlotManager : IconInventorySlot
             imageObject.color = imageColor;
         }
     }
+
+    public override void OnBeginDrag()
+    {
+        SetAlpha(0.4f); // Make semi-transparent during drag
+    }
+
+    public override void OnEndDrag()
+    {
+        SetAlpha(1f); // Restore full opacity after drag
+    }
+
+    public Sprite GetIconSprite()
+    {
+        return imageObject.sprite;
+    }
+
+    public string GetIconText()
+    {
+        return textObject.text;
+    }
 }

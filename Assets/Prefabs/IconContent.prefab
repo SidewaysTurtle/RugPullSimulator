@@ -265,6 +265,8 @@ GameObject:
   - component: {fileID: 7077768230878285548}
   - component: {fileID: 6410220395850314222}
   - component: {fileID: 1318343997969605290}
+  - component: {fileID: 8426824886600452915}
+  - component: {fileID: 6308922441523277060}
   - component: {fileID: 7175603452718684664}
   - component: {fileID: 5212856908795692504}
   m_Layer: 5
@@ -350,6 +352,36 @@ MonoBehaviour:
   distanceToDroppedIcon: 3.4028235e+38
   textObject: {fileID: 6172286690170080038}
   imageObject: {fileID: 697476790089550463}
+--- !u!114 &8426824886600452915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4735735870927586897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef82c46dd7473b4d88f3c6d8639e87e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  self: {fileID: 1318343997969605290}
+  dragUI: {fileID: 6308922441523277060}
+--- !u!114 &6308922441523277060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4735735870927586897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea271f19401b7b848bade440618922ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _Camera: {fileID: 0}
+  _GameObjectRectTransform: {fileID: 7794635682058639107}
+  _Canvas: {fileID: 0}
+  _CanvasRectTransform: {fileID: 0}
 --- !u!114 &7175603452718684664
 MonoBehaviour:
   m_ObjectHideFlags: 0
