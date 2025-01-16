@@ -9272,8 +9272,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12684430698b2d44fa2c575945f52bc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inventory: {fileID: 11400000, guid: 72f741bddd8ff5e43b505009365462c5, type: 2}
-  gridLayout: {fileID: 2101423944}
+  inventory: {fileID: 0}
+  iconInventorySlots: []
 --- !u!1001 &2105504100
 PrefabInstance:
   m_ObjectHideFlags: 0

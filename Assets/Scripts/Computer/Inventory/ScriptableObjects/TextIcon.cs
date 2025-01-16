@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
 
-using SeralizedJSONSystem;
+using SerializedJSONSystem;
 
 /// <summary>
 /// A variant of the Icon ScriptableObject that is used to represent a file.

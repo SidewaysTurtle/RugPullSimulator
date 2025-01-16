@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using SeralizedJSONSystem;
+using SerializedJSONSystem; // Fix typo in namespace name
+
 [System.Serializable]
 public class InventoryPhysical : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class InventoryPhysical : MonoBehaviour
     public static event OnSetSlot OnSetSlotEvent;
     public delegate void OnRemoveSlot();
     public static event OnRemoveSlot OnRemoveSlotEvent;
-    public delegate void OnCreateWindow(TextIcon icon, IconInventorySlot slot);
+    public delegate void OnCreateWindow(Icon icon, IconInventorySlot slot);
     public static event OnCreateWindow OnCreateWindowEvent;
     
     // Instance of the inventory Scriptable Object
@@ -58,7 +59,7 @@ public class InventoryPhysical : MonoBehaviour
     }
     void OnDrop(IconInventorySlot iconInventorySlot)
     {
-        TextIcon icon;
+        Icon icon;
         float smallestDistance = float.MaxValue;
         IconInventorySlot closestSlot = null;
         // var isnt slow, we guuchi
@@ -95,7 +96,7 @@ public class InventoryPhysical : MonoBehaviour
         if(inventory.InsertIcon(closestSlot.index,icon) != -1)
         {
             inventory.RemoveIcon(iconInventorySlot.index);
-            SeralizedJSON<Inventory>.SaveScriptableObject(inventory,name);
+            SerializedJSON<Inventory>.SaveScriptableObject(inventory,name);
         }
         /*<proposed feature>*/
             // else if(icon is FolderIcon)
@@ -109,7 +110,7 @@ public class InventoryPhysical : MonoBehaviour
 
     public void DoubleClickEvent(IconInventorySlot slot)
     {
-        TextIcon icon;
+        Icon icon;
         // Make the classes subscribed to this event call the appropriate method if the type is correct...
         if(inventory.GetIcon(slot.index, out icon))
             OnCreateWindowEvent?.Invoke(icon, slot);
@@ -117,6 +118,9 @@ public class InventoryPhysical : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        SeralizedJSON<Inventory>.SaveScriptableObject(inventory,name);
+        if (inventory != null)
+        {
+            SerializedJSON<Inventory>.SaveScriptableObject(inventory, name);
+        }
     }
 }

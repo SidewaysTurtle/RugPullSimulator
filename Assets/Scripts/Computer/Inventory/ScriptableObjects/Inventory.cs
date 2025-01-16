@@ -1,30 +1,11 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [CreateAssetMenu(menuName = "Inventory/Inventory", fileName = "Inventory.asset")]
 [System.Serializable]
 public class Inventory : ScriptableObject
 {
-    [SerializeField] private TextIcon[] inventory;
-    // using an indexer, isnt needed in this context
-    // https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/indexers/
-    // public Icon this[int index]
-    // {
-    //     get
-    //     {
-    //         return inventory[index];
-    //     }
-    //     set
-    //     {
-    //         inventory[index] = value;
-    //     }
-    // }
-
-    /// <summary>
-    /// Loads the inventory to a json file.
-    /// </summary>
-    /// <param name="path">The path to the json file.</param>
-    
-    /* Inventory START */
+    [SerializeReference] private Icon[] inventory;
 
     /// <summary>
     /// Checks if a slot is empty.
@@ -43,10 +24,9 @@ public class Inventory : ScriptableObject
     /// <param name="index">The index of the icon.</param>
     /// <param name="icon">The icon to return.</param>
     /// <returns>True if the icon exists, false if it doesn't.</returns>
-    public bool GetIcon(int index, out TextIcon icon) {
-        // inventory[index] doesn't return null, so check icon instead.
+    public bool GetIcon(int index, out Icon icon) {
         if (SlotEmpty(index)) {
-            icon = default(TextIcon);
+            icon = default(Icon);
             return false;
         }
 
@@ -65,7 +45,7 @@ public class Inventory : ScriptableObject
             return false;
         }
 
-        inventory[index] = default(TextIcon);
+        inventory[index] = default(Icon);
 
         return true;
     }
@@ -75,7 +55,7 @@ public class Inventory : ScriptableObject
     /// </summary>
     /// <param name="icon">The icon to insert.</param>
     /// <returns>The index where the icon was inserted. If the icon already exists, return -1.</returns>
-    public int PushIcon(TextIcon icon) {
+    public int PushIcon(Icon icon) {
         for (int i = 0; i < inventory.Length; i++) {
             if (SlotEmpty(i)) {
                 inventory[i] = icon;
@@ -92,7 +72,7 @@ public class Inventory : ScriptableObject
     /// </summary>
     /// <param name="icon">The icon to insert.</param>
     /// <returns>The index where the icon was inserted. If the icon already exists, return -1.</returns>
-    public int InsertIcon(int index, TextIcon icon) {
+    public int InsertIcon(int index, Icon icon) {
         if(SlotEmpty(index)){
             inventory[index] = icon;
             return index;
@@ -104,5 +84,22 @@ public class Inventory : ScriptableObject
     public int GetLength()
     {
         return inventory.Length;
+    }
+
+    /// <summary>
+    /// Returns all non-empty slots in the inventory
+    /// </summary>
+    /// <returns>Array of indices that contain icons</returns>
+    public int[] GetFilledSlots()
+    {
+        List<int> filledSlots = new List<int>();
+        for (int i = 0; i < inventory.Length; i++)
+        {
+            if (!SlotEmpty(i))
+            {
+                filledSlots.Add(i);
+            }
+        }
+        return filledSlots.ToArray();
     }
 }

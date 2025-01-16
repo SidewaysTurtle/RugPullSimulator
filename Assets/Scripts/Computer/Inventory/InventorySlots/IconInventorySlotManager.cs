@@ -1,29 +1,54 @@
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-[System.Serializable]
+
 public class IconInventorySlotManager : IconInventorySlot
 {
-    public TextMeshProUGUI textObject;
-    public Image imageObject;
+    [SerializeField] private TextMeshProUGUI textObject;
+    [SerializeField] private Image imageObject;
+
     protected override void Awake()
     {
         base.Awake();
-        InventoryPhysical.OnSetSlotEvent += SetSlot;
+        SetAlpha(0);
     }
 
-    // Not anymore...
-        // Gets called DIRECTLY from Inventory Managers (i.e DesktopManager)
-    protected override void SetSlot(Inventory inventory)
+    public void SetIcon(Icon icon, int slotIndex)
     {
-        TextIcon icon;
-        // FIXME
-        // I didnt know how to pass the icon to the physical slot while using a delegate...
-        // This is such a stupid solution but it works for now
-        if (inventory.GetIcon(index, out icon))
+        index = slotIndex;
+        if (icon == null) 
         {
-            base.SetSlot(inventory);
-            textObject.text = icon.name;
-            imageObject.sprite = icon.image;
+            ClearSlot();
+            return;
+        }
+
+        textObject.text = icon.name;
+        imageObject.sprite = icon.image;
+        SetAlpha(1);
+        PhysicalRepresentation.SetActive(true);
+    }
+
+    public void ClearSlot()
+    {
+        textObject.text = "";
+        SetAlpha(0);
+        PhysicalRepresentation.SetActive(false);
+    }
+
+    private void SetAlpha(float alpha)
+    {
+        if (textObject != null)
+        {
+            Color textColor = textObject.color;
+            textColor.a = alpha;
+            textObject.color = textColor;
+        }
+
+        if (imageObject != null)
+        {
+            Color imageColor = imageObject.color;
+            imageColor.a = alpha;
+            imageObject.color = imageColor;
         }
     }
 }

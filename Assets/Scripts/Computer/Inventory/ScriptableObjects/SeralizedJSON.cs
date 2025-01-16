@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace SeralizedJSONSystem{
-    public static class SeralizedJSON<T> where T : ScriptableObject
+namespace SerializedJSONSystem{
+    public static class SerializedJSON<T> where T : ScriptableObject
     {
         // adding JSON Serialization (copy + paste from texticon.cs)
         internal static void LoadFromJSON(string path, out T instance){

@@ -1,25 +1,54 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
+using SerializedJSONSystem; // Add the correct namespace
 
-public class DesktopManager : InventoryPhysical
+public class DesktopManager : MonoBehaviour
 {
-    protected override void Awake()
+    [SerializeField] private Inventory inventory;
+    [SerializeField] private IconInventorySlotManager[] slots;
+
+    void Start()
     {
-        base.Awake();
+        if (inventory == null)
+        {
+            Debug.LogError("Inventory not assigned to DesktopManager!");
+            return;
+        }
+
+        // Get all slots if not assigned in inspector
+        if (slots == null || slots.Length == 0)
+        {
+            slots = GetComponentsInChildren<IconInventorySlotManager>();
+        }
+
+        RefreshAllSlots();
     }
 
-    void OnEnable()
+    public void RefreshAllSlots()
     {
-        iconInventorySlots = new List<IconInventorySlot>();
+        // Clear all slots first
+        foreach (var slot in slots)
+        {
+            slot.ClearSlot();
+        }
 
-        // This is a bad way to do this. Slow.
-        iconInventorySlots.AddRange(IconInventorySlot.FindObjectsByType<IconInventorySlot>(FindObjectsSortMode.InstanceID));
-        iconInventorySlots.Sort((a, b) => a.index - b.index);
+        // Get filled slots from inventory and update UI
+        int[] filledSlots = inventory.GetFilledSlots();
+        for (int i = 0; i < filledSlots.Length && i < slots.Length; i++)
+        {
+            Icon icon;
+            if (inventory.GetIcon(filledSlots[i], out icon))
+            {
+                slots[i].SetIcon(icon, filledSlots[i]);
+            }
+        }
     }
 
-    protected override void Start()
+    void OnApplicationQuit()
     {
-        base.Start();
+        if (inventory != null)
+        {
+            SerializedJSON<Inventory>.SaveScriptableObject(inventory, name);
+        }
     }
 }
