@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - debug
+  - Filename
+  - Slot
+  - Computer
+  - Phone
+  - Icon
   layers:
   - Default
   - TransparentFX
@@ -12,8 +18,8 @@ TagManager:
   - Water
   - UI
   - Interactable
-  - 
-  - 
+  - Background
+  - Foreground
   - 
   - 
   - 
