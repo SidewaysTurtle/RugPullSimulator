@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 
-namespace SerializedJSONSystem{
+namespace SerializedJSONSystem
+{
     public static class SerializedJSON<T> where T : ScriptableObject
     {
         // adding JSON Serialization (copy + paste from texticon.cs)
@@ -19,58 +21,58 @@ namespace SerializedJSONSystem{
             instance = (T)Resources.Load(filename);
             instance.hideFlags = HideFlags.HideAndDontSave;
         }
-        internal static void SaveToJSON(T obj, string path) {
-            Debug.Log(obj.ToString());
-            System.IO.File.WriteAllText(path, JsonUtility.ToJson(obj, true));
+
+        private static string GetSavePath(string filename)
+        {
+            string scenePath = Path.Combine(Application.persistentDataPath, 
+                                          UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            
+            // Create directories if they don't exist
+            if (!Directory.Exists(scenePath))
+            {
+                Directory.CreateDirectory(scenePath);
+            }
+
+            return Path.Combine(scenePath, $"{filename}.json");
+        }
+
+        internal static void SaveToJSON(T obj, string path)
+        {
+            Debug.Log($"Saving to: {path}");
+            string jsonData = JsonUtility.ToJson(obj, true);
+            File.WriteAllText(path, jsonData);
         }
 
         // public
         public static void LoadScriptableObject(string filename, out T _instance)
         {
-            string jsonPath = System.IO.Path.Combine(Application.persistentDataPath,UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,$"{filename}.json");
-            
-            //FIXME: Using split("something") all over the place will blow up in my face
-            if(filename.Contains("."))
-                filename = filename.Split(".")[0];
-            string resourcesPath = "Computer/Icon/" + filename;
+            string jsonPath = GetSavePath(filename);
+            string resourcesPath = "Computer/Inventory/" + filename.Split('.')[0];
 
-            T instance = ScriptableObject.CreateInstance<T>();
-            if (System.IO.File.Exists(jsonPath))
-                {
-                    Debug.Log("Loading from " + jsonPath);
-                    LoadFromJSON(jsonPath, out _instance);
-                }
+            if (File.Exists(jsonPath))
+            {
+                Debug.Log($"Loading from: {jsonPath}");
+                LoadFromJSON(jsonPath, out _instance);
+            }
             else
             {
                 try
                 {
-                    Debug.LogError($"Could not load {typeof(T)} from ({jsonPath})\nLoading most recent from {resourcesPath} instead.");
+                    Debug.Log($"No save file found at {jsonPath}, loading from resources: {resourcesPath}");
                     LoadFromResources(resourcesPath, out _instance);
                 }
-                catch(System.Exception e)
+                catch (System.Exception e)
                 {
-                    Debug.LogAssertion($"No {typeof(T)} file found.\n{e.Message}");
-                    _instance = null;
+                    Debug.Log($"No resources found at {resourcesPath}, creating new instance");
+                    _instance = ScriptableObject.CreateInstance<T>();
                 }
             }
         }
-        
-        public static void SaveScriptableObject(T scriptableObject, string filename) {
-            string jsonPath = System.IO.Path.Combine(Application.persistentDataPath,UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,$"{filename}.json");
-            
-            Debug.Log($"Saving at {jsonPath}");
+
+        public static void SaveScriptableObject(T scriptableObject, string filename)
+        {
+            string jsonPath = GetSavePath(filename);
             SaveToJSON(scriptableObject, jsonPath);
-
-            // Bad solution.
-
-            // if(filename.Contains("."))
-            //     filename = filename.Split(".")[0];
-            // string resourcesPath = "Computer/Icon/" + filename;
-            // AssetDatabase.CreateAsset ((T)obj, resourcesPath);
-
-            // EditorUtility.SetDirty(scriptableObject);
-            // AssetDatabase.SaveAssets();
-            // AssetDatabase.Refresh();
         }
     }
 }
