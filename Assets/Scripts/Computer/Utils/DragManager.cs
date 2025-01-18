@@ -12,7 +12,7 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     public delegate void OnDoubleClick(IconInventorySlotManager slot);
     public static event OnDoubleClick OnDoubleClickEvent;
     public delegate void OnEndDragged(Vector3 position);
-    public static event OnEndDragged OnEndDraggedEvent;
+    public static event OnEndDragged OnEndDraggedEvent; // For mouse position, but its not really used
     public delegate void OnIconDrop(IconInventorySlotManager iconInventorySlot);
     public static event OnIconDrop OnDropEvent;
     public IconInventorySlotManager self;
@@ -109,16 +109,17 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
 
     public void OnBeginDrag(PointerEventData eventdata)
     {
-        currentDraggedSlot = self;
-        if (currentDraggedSlot != null)
+        // Only allow drag if the slot is not empty
+        if (self != null && !self.IsEmpty())
         {
+            currentDraggedSlot = self;
             currentDragVisual.Initialize(transform, 
                 currentDraggedSlot.GetIconSprite(), 
                 currentDraggedSlot.GetIconText());
             SetupDragVisual();
             currentDraggedSlot.OnBeginDrag();
+            OnBeginDragEvent?.Invoke(self);
         }
-        OnBeginDragEvent?.Invoke(self);
     }
 
     private void Update()
@@ -133,43 +134,10 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     {
         if (currentDraggedSlot != null)
         {
-            // Find all active IconInventorySlotManager components
-            IconInventorySlotManager[] allSlots = GameObject.FindObjectsOfType<IconInventorySlotManager>();
-            IconInventorySlotManager closestSlot = null;
-            float closestDistance = float.MaxValue;
-
-            foreach (var slot in allSlots)
-            {
-                if (slot == self) continue;
-
-                // Convert both positions to screen space for accurate comparison
-                Vector2 slotScreenPoint = RectTransformUtility.WorldToScreenPoint(null, slot.transform.position);
-                float distance = Vector2.Distance(slotScreenPoint, eventdata.position);
-
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestSlot = slot;
-                }
-            }
-
-            // Only trigger drop if we're within a reasonable distance
-            if (closestDistance <= 100f) // Adjust this value as needed
-            {
-                currentDraggedSlot.OnEndDrag();
-                currentDragVisual.Destroy();
-                OnEndDraggedEvent?.Invoke(eventdata.position);
-                OnDropEvent?.Invoke(closestSlot);
-            }
-            else
-            {
-                // Return to original position if no valid target
-                currentDraggedSlot.OnEndDrag();
-                currentDragVisual.Destroy();
-                OnEndDraggedEvent?.Invoke(eventdata.position);
-                OnDropEvent?.Invoke(self);
-            }
-            
+            currentDraggedSlot.OnEndDrag();
+            currentDragVisual.Destroy();
+            OnEndDraggedEvent?.Invoke(eventdata.position);
+            OnDropEvent?.Invoke(currentDraggedSlot);
             currentDraggedSlot = null;
         }
     }

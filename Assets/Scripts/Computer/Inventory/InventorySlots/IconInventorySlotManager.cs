@@ -10,6 +10,11 @@ public class IconInventorySlotManager : IconInventorySlot
     protected override void Awake()
     {
         base.Awake();
+        // Add CanvasGroup if not present
+        if (PhysicalRepresentation != null && PhysicalRepresentation.GetComponent<CanvasGroup>() == null)
+        {
+            PhysicalRepresentation.AddComponent<CanvasGroup>();
+        }
         SetAlpha(0);
     }
 
@@ -25,14 +30,21 @@ public class IconInventorySlotManager : IconInventorySlot
         textObject.text = icon.name;
         imageObject.sprite = icon.image;
         SetAlpha(1);
-        PhysicalRepresentation.SetActive(true);
+        // Only hide the visual representation, keep the slot active
+        if (PhysicalRepresentation != null)
+        {
+            PhysicalRepresentation.GetComponent<CanvasGroup>().alpha = 1;
+        }
     }
 
     public void ClearSlot()
     {
         textObject.text = "";
         SetAlpha(0);
-        PhysicalRepresentation.SetActive(false);
+        if (PhysicalRepresentation != null)
+        {
+            PhysicalRepresentation.GetComponent<CanvasGroup>().alpha = 0;
+        }
         index = -1;  // Reset index when cleared
     }
 
@@ -55,12 +67,18 @@ public class IconInventorySlotManager : IconInventorySlot
 
     public override void OnBeginDrag()
     {
-        SetAlpha(0.4f); // Make semi-transparent during drag
+        if (!IsEmpty())
+        {
+            SetAlpha(0.4f); // Make semi-transparent during drag
+        }
     }
 
     public override void OnEndDrag()
     {
-        SetAlpha(1f); // Restore full opacity after drag
+        if (!IsEmpty())
+        {
+            SetAlpha(1f); // Restore full opacity after drag
+        }
     }
 
     public Sprite GetIconSprite()

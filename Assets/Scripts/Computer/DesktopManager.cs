@@ -4,6 +4,9 @@ using SerializedJSONSystem;
 public class DesktopManager : InventoryPhysical
 {
     [SerializeField] private IconInventorySlotManager[] slots;
+    [SerializeField] private int gridWidth = 8;  // Number of slots horizontally
+    [SerializeField] private int gridHeight = 6; // Number of slots vertically
+    [SerializeField] private float slotSpacing = 100f; // Space between slots
 
     void Start()
     {
@@ -21,6 +24,7 @@ public class DesktopManager : InventoryPhysical
             slots = GetComponentsInChildren<IconInventorySlotManager>();
         }
 
+        PositionSlotsInGrid(); // Position the slots in grid layout
         RefreshAllSlots();
         DragManager.OnDropEvent += HandleDrop;
     }
@@ -69,27 +73,37 @@ public class DesktopManager : InventoryPhysical
         if (droppedSlot == null) return;
 
         // Get the icon from the source slot
-        Icon draggedIcon;
-        if (!inventory.GetIcon(droppedSlot.index, out draggedIcon))
+        if (!inventory.GetIcon(droppedSlot.index, out Icon draggedIcon))
         {
             RefreshAllSlots();
             return;
         }
 
-        // If dropping on itself, just refresh
-        if (droppedSlot == null)
+        // Get the mouse position and convert it to local position
+        Vector2 mousePos = Input.mousePosition;
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        Vector2 localPoint;
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out localPoint))
         {
-            RefreshAllSlots();
-            return;
-        }
+            // Calculate grid position
+            int gridX = Mathf.RoundToInt((localPoint.x + (rectTransform.rect.width / 2)) / slotSpacing);
+            int gridY = Mathf.RoundToInt((localPoint.y + (rectTransform.rect.height / 2)) / slotSpacing);
 
-        // Handle the swap
-        int originalIndex = droppedSlot.index;
-        inventory.RemoveIcon(originalIndex);
-        inventory.InsertIcon(droppedSlot.index, draggedIcon);
-        
-        SaveInventoryState();
-        RefreshAllSlots();
+            // Clamp to grid boundaries
+            gridX = Mathf.Clamp(gridX, 0, gridWidth - 1);
+            gridY = Mathf.Clamp(gridY, 0, gridHeight - 1);
+
+            // Convert grid position to slot index
+            int targetIndex = gridY * gridWidth + gridX;
+
+            // Ensure the target index is valid
+            if (targetIndex >= 0 && targetIndex < slots.Length)
+            {
+                inventory.InsertIcon(targetIndex, draggedIcon);
+                SaveInventoryState();
+                RefreshAllSlots();
+            }
+        }
     }
 
     private void SaveInventoryState()
@@ -132,5 +146,24 @@ public class DesktopManager : InventoryPhysical
     void OnApplicationQuit()
     {
         SaveInventoryState();
+    }
+
+    // Helper method to position slots in grid layout
+    private void PositionSlotsInGrid()
+    {
+        for (int y = 0; y < gridHeight; y++)
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                int index = y * gridWidth + x;
+                if (index < slots.Length)
+                {
+                    RectTransform slotRect = slots[index].GetComponent<RectTransform>();
+                    float posX = (x - (gridWidth - 1) / 2f) * slotSpacing;
+                    float posY = (y - (gridHeight - 1) / 2f) * slotSpacing;
+                    slotRect.anchoredPosition = new Vector2(posX, posY);
+                }
+            }
+        }
     }
 }
