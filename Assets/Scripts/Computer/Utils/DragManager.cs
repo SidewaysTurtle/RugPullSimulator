@@ -7,15 +7,15 @@ using TMPro;
 
 public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandler, IEndDragHandler
 {
-    public delegate void OnIconBeginDrag(IconInventorySlot iconInventorySlot);
+    public delegate void OnIconBeginDrag(IconInventorySlotManager iconInventorySlot);
     public static event OnIconBeginDrag OnBeginDragEvent;
-    public delegate void OnDoubleClick(IconInventorySlot slot);
+    public delegate void OnDoubleClick(IconInventorySlotManager slot);
     public static event OnDoubleClick OnDoubleClickEvent;
     public delegate void OnEndDragged(Vector3 position);
     public static event OnEndDragged OnEndDraggedEvent;
-    public delegate void OnIconDrop(IconInventorySlot iconInventorySlot);
+    public delegate void OnIconDrop(IconInventorySlotManager iconInventorySlot);
     public static event OnIconDrop OnDropEvent;
-    public IconInventorySlot self;
+    public IconInventorySlotManager self;
     public DragUI dragUI;
 
     private struct DragVisual
@@ -96,14 +96,26 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     private DragVisual currentDragVisual;
     private IconInventorySlotManager currentDraggedSlot;
 
+    private void SetupDragVisual()
+    {
+        if (currentDragVisual.visualObject != null)
+        {
+            // Ensure drag visual doesn't block raycasts
+            CanvasGroup canvasGroup = currentDragVisual.visualObject.AddComponent<CanvasGroup>();
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
+        }
+    }
+
     public void OnBeginDrag(PointerEventData eventdata)
     {
-        currentDraggedSlot = self.GetComponent<IconInventorySlotManager>();
+        currentDraggedSlot = self;
         if (currentDraggedSlot != null)
         {
             currentDragVisual.Initialize(transform, 
                 currentDraggedSlot.GetIconSprite(), 
                 currentDraggedSlot.GetIconText());
+            SetupDragVisual();
             currentDraggedSlot.OnBeginDrag();
         }
         OnBeginDragEvent?.Invoke(self);
@@ -121,13 +133,45 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     {
         if (currentDraggedSlot != null)
         {
-            currentDraggedSlot.OnEndDrag();
-        }
+            // Find all active IconInventorySlotManager components
+            IconInventorySlotManager[] allSlots = GameObject.FindObjectsOfType<IconInventorySlotManager>();
+            IconInventorySlotManager closestSlot = null;
+            float closestDistance = float.MaxValue;
 
-        currentDragVisual.Destroy();
-        OnEndDraggedEvent?.Invoke(eventdata.pointerDrag.transform.localPosition);
-        OnDropEvent?.Invoke(self);
-        currentDraggedSlot = null;
+            foreach (var slot in allSlots)
+            {
+                if (slot == self) continue;
+
+                // Convert both positions to screen space for accurate comparison
+                Vector2 slotScreenPoint = RectTransformUtility.WorldToScreenPoint(null, slot.transform.position);
+                float distance = Vector2.Distance(slotScreenPoint, eventdata.position);
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestSlot = slot;
+                }
+            }
+
+            // Only trigger drop if we're within a reasonable distance
+            if (closestDistance <= 100f) // Adjust this value as needed
+            {
+                currentDraggedSlot.OnEndDrag();
+                currentDragVisual.Destroy();
+                OnEndDraggedEvent?.Invoke(eventdata.position);
+                OnDropEvent?.Invoke(closestSlot);
+            }
+            else
+            {
+                // Return to original position if no valid target
+                currentDraggedSlot.OnEndDrag();
+                currentDragVisual.Destroy();
+                OnEndDraggedEvent?.Invoke(eventdata.position);
+                OnDropEvent?.Invoke(self);
+            }
+            
+            currentDraggedSlot = null;
+        }
     }
 
     void IPointerClickHandler.OnPointerClick(PointerEventData eventData)

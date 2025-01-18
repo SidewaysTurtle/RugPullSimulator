@@ -15,7 +15,7 @@ public class IconInventorySlotManager : IconInventorySlot
 
     public void SetIcon(Icon icon, int slotIndex)
     {
-        index = slotIndex;
+        index = slotIndex;  // Make sure we store the index
         if (icon == null) 
         {
             ClearSlot();
@@ -33,6 +33,7 @@ public class IconInventorySlotManager : IconInventorySlot
         textObject.text = "";
         SetAlpha(0);
         PhysicalRepresentation.SetActive(false);
+        index = -1;  // Reset index when cleared
     }
 
     private void SetAlpha(float alpha)
@@ -70,5 +71,29 @@ public class IconInventorySlotManager : IconInventorySlot
     public string GetIconText()
     {
         return textObject.text;
+    }
+
+    public void TransferDataFrom(IconInventorySlotManager source)
+    {
+        if (source == null) return;
+        
+        textObject.text = source.GetIconText();
+        imageObject.sprite = source.GetIconSprite();
+        SetAlpha(1);
+        PhysicalRepresentation.SetActive(true);
+    }
+
+    public void ClearData()
+    {
+        textObject.text = "";
+        imageObject.sprite = null;
+        SetAlpha(0);
+        PhysicalRepresentation.SetActive(false);
+    }
+
+    public bool IsEmpty()
+    {
+        // Check if both the image and text are effectively invisible
+        return imageObject.color.a < 0.1f && textObject.color.a < 0.1f;
     }
 }
