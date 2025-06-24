@@ -95,6 +95,7 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
 
     private DragVisual currentDragVisual;
     private IconInventorySlotManager currentDraggedSlot;
+    private Vector3 dragOffset; // Store offset between mouse and icon
 
     private void SetupDragVisual()
     {
@@ -104,6 +105,7 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
             CanvasGroup canvasGroup = currentDragVisual.visualObject.AddComponent<CanvasGroup>();
             canvasGroup.blocksRaycasts = false;
             canvasGroup.interactable = false;
+            canvasGroup.alpha = 0.5f; // Set drag visual to half opacity
         }
     }
 
@@ -119,6 +121,11 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
             SetupDragVisual();
             currentDraggedSlot.OnBeginDrag();
             OnBeginDragEvent?.Invoke(self);
+            // Calculate offset between mouse and icon position
+            RectTransform slotRect = currentDraggedSlot.GetComponent<RectTransform>();
+            Vector2 localMousePos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(slotRect, eventdata.position, eventdata.pressEventCamera, out localMousePos);
+            dragOffset = localMousePos;
         }
     }
 
@@ -126,7 +133,10 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     {
         if (currentDraggedSlot != null)
         {
-            currentDragVisual.UpdatePosition(Input.mousePosition);
+            // Place the drag visual at the mouse position minus the offset
+            Vector3 mousePos = Input.mousePosition;
+            Vector3 worldPos = mousePos - dragOffset;
+            currentDragVisual.UpdatePosition(worldPos);
         }
     }
 
@@ -137,7 +147,7 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
             currentDraggedSlot.OnEndDrag();
             currentDragVisual.Destroy();
             OnEndDraggedEvent?.Invoke(eventdata.position);
-            OnDropEvent?.Invoke(currentDraggedSlot);
+            OnDropEvent?.Invoke(currentDraggedSlot); // This should be correct, as currentDraggedSlot is the slot being dragged
             currentDraggedSlot = null;
         }
     }

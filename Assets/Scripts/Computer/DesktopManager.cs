@@ -27,6 +27,8 @@ public class DesktopManager : InventoryPhysical
 
         RefreshAllSlots();
         DragManager.OnDropEvent += HandleDrop;
+
+        SaveInventoryState(); // Ensure initial state is saved
     }
 
     void OnDestroy()
@@ -131,10 +133,8 @@ public class DesktopManager : InventoryPhysical
                 gridX = Mathf.FloorToInt(localPoint.x / (cellSize.x + spacing.x));
                 gridY = Mathf.FloorToInt(localPoint.y / (cellSize.y + spacing.y));
 
-                // Swap X and Y for vertical layout
-                int temp = gridX;
-                gridX = gridY;
-                gridY = temp;
+                // Swap X and Y for vertical layout (IDE0180)
+                (gridY, gridX) = (gridX, gridY);
 
                 // Reverse if needed based on start corner
                 if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight || 

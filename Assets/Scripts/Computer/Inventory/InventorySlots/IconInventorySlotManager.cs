@@ -6,14 +6,18 @@ public class IconInventorySlotManager : IconInventorySlot
 {
     [SerializeField] private TextMeshProUGUI textObject;
     [SerializeField] private Image imageObject;
+    private CanvasGroup canvasGroup; // Cache reference
 
     protected override void Awake()
     {
         base.Awake();
-        // Add CanvasGroup if not present
-        if (PhysicalRepresentation != null && PhysicalRepresentation.GetComponent<CanvasGroup>() == null)
+        if (PhysicalRepresentation != null)
         {
-            PhysicalRepresentation.AddComponent<CanvasGroup>();
+            canvasGroup = PhysicalRepresentation.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = PhysicalRepresentation.AddComponent<CanvasGroup>();
+            }
         }
         SetAlpha(0);
     }
@@ -33,7 +37,8 @@ public class IconInventorySlotManager : IconInventorySlot
         // Only hide the visual representation, keep the slot active
         if (PhysicalRepresentation != null)
         {
-            PhysicalRepresentation.GetComponent<CanvasGroup>().alpha = 1;
+            EnsureCanvasGroup();
+            canvasGroup.alpha = 1;
         }
     }
 
@@ -43,7 +48,8 @@ public class IconInventorySlotManager : IconInventorySlot
         SetAlpha(0);
         if (PhysicalRepresentation != null)
         {
-            PhysicalRepresentation.GetComponent<CanvasGroup>().alpha = 0;
+            EnsureCanvasGroup();
+            canvasGroup.alpha = 0;
         }
         index = -1;  // Reset index when cleared
     }
@@ -62,6 +68,18 @@ public class IconInventorySlotManager : IconInventorySlot
             Color imageColor = imageObject.color;
             imageColor.a = alpha;
             imageObject.color = imageColor;
+        }
+    }
+
+    private void EnsureCanvasGroup()
+    {
+        if (canvasGroup == null && PhysicalRepresentation != null)
+        {
+            canvasGroup = PhysicalRepresentation.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = PhysicalRepresentation.AddComponent<CanvasGroup>();
+            }
         }
     }
 
