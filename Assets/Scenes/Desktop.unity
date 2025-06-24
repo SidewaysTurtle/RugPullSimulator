@@ -10335,7 +10335,7 @@ MonoBehaviour:
   slots: []
   gridWidth: 12
   gridHeight: 4
-  slotSpacing: 160
+  gridLayout: {fileID: 2101423944}
 --- !u!224 &1058548087038794139 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7794635682058639107, guid: 0d804b81112761944a7e5ab511cd2d36, type: 3}

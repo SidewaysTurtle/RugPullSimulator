@@ -1,12 +1,13 @@
 using UnityEngine;
+using UnityEngine.UI;
 using SerializedJSONSystem;
 
 public class DesktopManager : InventoryPhysical
 {
     [SerializeField] private IconInventorySlotManager[] slots;
-    [SerializeField] private int gridWidth = 8;  // Number of slots horizontally
-    [SerializeField] private int gridHeight = 6; // Number of slots vertically
-    [SerializeField] private float slotSpacing = 100f; // Space between slots
+    [SerializeField] private int gridWidth = 12;
+    [SerializeField] private int gridHeight = 4;
+    [SerializeField] GridLayoutGroup gridLayout;
 
     void Start()
     {
@@ -24,7 +25,6 @@ public class DesktopManager : InventoryPhysical
             slots = GetComponentsInChildren<IconInventorySlotManager>();
         }
 
-        PositionSlotsInGrid(); // Position the slots in grid layout
         RefreshAllSlots();
         DragManager.OnDropEvent += HandleDrop;
     }
@@ -72,33 +72,103 @@ public class DesktopManager : InventoryPhysical
     {
         if (droppedSlot == null) return;
 
-        // Get the icon from the source slot
         if (!inventory.GetIcon(droppedSlot.index, out Icon draggedIcon))
         {
             RefreshAllSlots();
             return;
         }
 
-        // Get the mouse position and convert it to local position
         Vector2 mousePos = Input.mousePosition;
         RectTransform rectTransform = GetComponent<RectTransform>();
-        Vector2 localPoint;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out localPoint))
+        
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out Vector2 localPoint))
         {
-            // Calculate grid position
-            int gridX = Mathf.RoundToInt((localPoint.x + (rectTransform.rect.width / 2)) / slotSpacing);
-            int gridY = Mathf.RoundToInt((localPoint.y + (rectTransform.rect.height / 2)) / slotSpacing);
+            Vector2 padding = new Vector2(gridLayout.padding.left, gridLayout.padding.top);
+            Vector2 cellSize = gridLayout.cellSize;
+            Vector2 spacing = gridLayout.spacing;
+            
+            // Adjust for different start corners
+            switch (gridLayout.startCorner)
+            {
+                case GridLayoutGroup.Corner.UpperLeft:
+                    localPoint += rectTransform.rect.size * 0.5f;
+                    break;
+                case GridLayoutGroup.Corner.UpperRight:
+                    localPoint += new Vector2(-rectTransform.rect.size.x * 0.5f, rectTransform.rect.size.y * 0.5f);
+                    break;
+                case GridLayoutGroup.Corner.LowerLeft:
+                    localPoint += new Vector2(rectTransform.rect.size.x * 0.5f, -rectTransform.rect.size.y * 0.5f);
+                    break;
+                case GridLayoutGroup.Corner.LowerRight:
+                    localPoint -= rectTransform.rect.size * 0.5f;
+                    break;
+            }
+
+            // Adjust for padding
+            localPoint -= padding;
+
+            // Calculate grid position based on start axis
+            int gridX, gridY;
+            if (gridLayout.startAxis == GridLayoutGroup.Axis.Horizontal)
+            {
+                gridX = Mathf.FloorToInt(localPoint.x / (cellSize.x + spacing.x));
+                gridY = Mathf.FloorToInt(localPoint.y / (cellSize.y + spacing.y));
+
+                // Reverse if needed based on start corner
+                if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight || 
+                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
+                {
+                    gridX = gridWidth - 1 - gridX;
+                }
+                if (gridLayout.startCorner == GridLayoutGroup.Corner.LowerLeft || 
+                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
+                {
+                    gridY = gridHeight - 1 - gridY;
+                }
+            }
+            else // Vertical
+            {
+                gridX = Mathf.FloorToInt(localPoint.x / (cellSize.x + spacing.x));
+                gridY = Mathf.FloorToInt(localPoint.y / (cellSize.y + spacing.y));
+
+                // Swap X and Y for vertical layout
+                int temp = gridX;
+                gridX = gridY;
+                gridY = temp;
+
+                // Reverse if needed based on start corner
+                if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight || 
+                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
+                {
+                    gridX = gridWidth - 1 - gridX;
+                }
+                if (gridLayout.startCorner == GridLayoutGroup.Corner.LowerLeft || 
+                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
+                {
+                    gridY = gridHeight - 1 - gridY;
+                }
+            }
 
             // Clamp to grid boundaries
             gridX = Mathf.Clamp(gridX, 0, gridWidth - 1);
             gridY = Mathf.Clamp(gridY, 0, gridHeight - 1);
-
-            // Convert grid position to slot index
-            int targetIndex = gridY * gridWidth + gridX;
-
-            // Ensure the target index is valid
-            if (targetIndex >= 0 && targetIndex < slots.Length)
+            
+            // Calculate final index based on layout
+            int targetIndex;
+            if (gridLayout.startAxis == GridLayoutGroup.Axis.Horizontal)
             {
+                targetIndex = gridY * gridWidth + gridX;
+            }
+            else
+            {
+                targetIndex = gridX * gridHeight + gridY;
+            }
+
+            if (targetIndex >= 0 && targetIndex < slots.Length && IsSlotEmpty(targetIndex))
+            {
+                Debug.Log(targetIndex);
+                
+                inventory.RemoveIcon(droppedSlot.index);
                 inventory.InsertIcon(targetIndex, draggedIcon);
                 SaveInventoryState();
                 RefreshAllSlots();
@@ -146,24 +216,5 @@ public class DesktopManager : InventoryPhysical
     void OnApplicationQuit()
     {
         SaveInventoryState();
-    }
-
-    // Helper method to position slots in grid layout
-    private void PositionSlotsInGrid()
-    {
-        for (int y = 0; y < gridHeight; y++)
-        {
-            for (int x = 0; x < gridWidth; x++)
-            {
-                int index = y * gridWidth + x;
-                if (index < slots.Length)
-                {
-                    RectTransform slotRect = slots[index].GetComponent<RectTransform>();
-                    float posX = (x - (gridWidth - 1) / 2f) * slotSpacing;
-                    float posY = (y - (gridHeight - 1) / 2f) * slotSpacing;
-                    slotRect.anchoredPosition = new Vector2(posX, posY);
-                }
-            }
-        }
     }
 }

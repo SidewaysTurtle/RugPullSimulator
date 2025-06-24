@@ -50,17 +50,10 @@ namespace Monologue.Dialogue
         {
             // FIXME: Passes up the Event, because I cannot invoke an event that isnt in the file. (in DialoguePrefab)
             Panel.OnChoiceSelectedEvent += ChoiceSelected;
-            DontDestroyHelper.NotDestroyedHelperEvent += DeactivatePanel;
-        }
-        void DeactivatePanel()
-        {
-            ChangeSceneOnLoadDontDestroy.Instance.NextScene();
-            IsDialogueActive = false;
         }
         void OnDisable()
         {
             Panel.OnChoiceSelectedEvent -= ChoiceSelected;
-            DontDestroyHelper.NotDestroyedHelperEvent -= DeactivatePanel;
         }
         void Update()
         {
@@ -134,6 +127,11 @@ namespace Monologue.Dialogue
         public static void EmitDialogueContent(string text)
         {
             OnDialogueContentEvent?.Invoke(text);
+        }
+
+        public void DeactivateDialoguePanel()
+        {
+            IsDialogueActive = false;
         }
 
     }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 using SerializedJSONSystem; // Fix typo in namespace name
 
-[System.Serializable]
+[System.Serializable, ExecuteInEditMode]
 public class InventoryPhysical : MonoBehaviour
 {
     // Delegates
@@ -69,5 +69,12 @@ public class InventoryPhysical : MonoBehaviour
         {
             SerializedJSON<Inventory>.SaveScriptableObject(inventory, name);
         }
+    }
+
+    [ContextMenu("Delete Saved Desktop JSON")]
+    public void DeleteSavedDesktopJSON()
+    {
+        string fileName = name + "_desktop";
+        SerializedJSON<Inventory>.DeleteScriptableObject(fileName);
     }
 }

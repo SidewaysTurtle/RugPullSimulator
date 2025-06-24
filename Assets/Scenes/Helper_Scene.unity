@@ -128,7 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 733389221}
-  - component: {fileID: 733389220}
+  - component: {fileID: 733389222}
   m_Layer: 0
   m_Name: GoToMainMenu
   m_TagString: Untagged
@@ -136,20 +136,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &733389220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 733389219}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3729768ff686c604b8750471bba25596, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _SceneName: Menu
-  _TotalChangeSceneCount: 1
 --- !u!4 &733389221
 Transform:
   m_ObjectHideFlags: 0
@@ -165,6 +151,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &733389222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733389219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7959e9c8e7d9964e9ef26d9bee80a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &856862504
 GameObject:
   m_ObjectHideFlags: 0
@@ -252,6 +250,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _TotalNotDestroyable: 3
+  OnAllNotDestroyableReady:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 733389222}
+        m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
+        m_MethodName: LoadSceneByName
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Menu
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &1247547259
 Transform:
   m_ObjectHideFlags: 0

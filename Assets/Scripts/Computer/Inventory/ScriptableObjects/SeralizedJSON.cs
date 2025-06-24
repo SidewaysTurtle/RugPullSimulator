@@ -63,7 +63,7 @@ namespace SerializedJSONSystem
                 }
                 catch (System.Exception e)
                 {
-                    Debug.Log($"No resources found at {resourcesPath}, creating new instance");
+                    Debug.Log($"No resources found at {resourcesPath}, creating new instance.\n{e.Message}");
                     _instance = ScriptableObject.CreateInstance<T>();
                 }
             }
@@ -73,6 +73,20 @@ namespace SerializedJSONSystem
         {
             string jsonPath = GetSavePath(filename);
             SaveToJSON(scriptableObject, jsonPath);
+        }
+
+        public static void DeleteScriptableObject(string filename)
+        {
+            string jsonPath = GetSavePath(filename);
+            if (File.Exists(jsonPath))
+            {
+                File.Delete(jsonPath);
+                Debug.Log($"Deleted save file at: {jsonPath}");
+            }
+            else
+            {
+                Debug.Log($"No save file found to delete at: {jsonPath}");
+            }
         }
     }
 }

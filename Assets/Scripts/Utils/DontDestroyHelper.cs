@@ -2,18 +2,28 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Monologue
 {
     public class DontDestroyHelper : MonoBehaviour
     {
+        public static DontDestroyHelper Instance {get; private set;}
         [SerializeField] int _TotalNotDestroyable;
-        int _NotDestroyableCount;
+        int _NotDestroyableCount = 0;
 
-        public delegate void NotDestroyedHelper();
-        public static event NotDestroyedHelper NotDestroyedHelperEvent; 
+        [Header("Events")]
+        public UnityEvent OnAllNotDestroyableReady;
 
         bool _calledHelperEvent = false;
+
+        void Awake()
+        {
+            if (!Instance)
+                Instance = this;
+            else
+                Destroy(gameObject);
+        }
         void OnEnable()
         {
             Monologue.DontDestroyOnLoad.NotDestroyedEvent += AddToCounter;
@@ -35,7 +45,7 @@ namespace Monologue
         {
             if(!_calledHelperEvent && _TotalNotDestroyable == _NotDestroyableCount)
             {
-                NotDestroyedHelperEvent?.Invoke();
+                OnAllNotDestroyableReady?.Invoke();
                 _calledHelperEvent = true;
             }
         }
