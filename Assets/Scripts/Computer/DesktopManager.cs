@@ -5,8 +5,6 @@ using SerializedJSONSystem;
 public class DesktopManager : InventoryPhysical
 {
     [SerializeField] private DesktopIcon[] slots;
-    [SerializeField] private int gridWidth = 12;
-    [SerializeField] private int gridHeight = 4;
     [SerializeField] GridLayoutGroup gridLayout;
 
     void Start()
@@ -61,7 +59,7 @@ public class DesktopManager : InventoryPhysical
     private void HandleDrop(DesktopIcon droppedSlot)
     {
         if (droppedSlot == null) return;
-        // It checks if the inventory is synced with the slots 
+        
         if (!inventory.GetIcon(droppedSlot.index, out Icon draggedIcon))
         {
             Debug.LogError("[DesktopManager]: Dragged icon not found in inventory for slot index: " + droppedSlot.index);
@@ -69,98 +67,77 @@ public class DesktopManager : InventoryPhysical
             return;
         }
 
-        Vector2 mousePos = Input.mousePosition;
-        RectTransform rectTransform = GetComponent<RectTransform>();
-        
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out Vector2 localPoint))
+        // The gridLayout's RectTransform is the container for the grid.
+        RectTransform gridRectTransform = gridLayout.GetComponent<RectTransform>();
+
+        // Convert mouse position to local point in the grid container
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(gridRectTransform, Input.mousePosition, null, out Vector2 localPoint))
         {
-            Vector2 padding = new Vector2(gridLayout.padding.left, gridLayout.padding.top);
+            // The localPoint is relative to the pivot (usually the center).
+            // We need to make it relative to the bottom-left corner of the RectTransform.
+            Vector2 positionInRect = localPoint - gridRectTransform.rect.min;
+
+            // Get grid properties
             Vector2 cellSize = gridLayout.cellSize;
             Vector2 spacing = gridLayout.spacing;
+            RectOffset padding = gridLayout.padding;
+            int gridWidth = Mathf.FloorToInt((gridRectTransform.rect.width - padding.horizontal + spacing.x) / (cellSize.x + spacing.x));
+            int gridHeight = Mathf.FloorToInt((gridRectTransform.rect.height - padding.vertical + spacing.y) / (cellSize.y + spacing.y));
+
+            // Calculate the position inside the content area (after padding)
+            float contentX = positionInRect.x - padding.left;
+            float contentY = positionInRect.y - padding.bottom;
+
+            // Calculate the raw column and row, assuming origin is bottom-left
+            int rawCol = Mathf.FloorToInt(contentX / (cellSize.x + spacing.x));
+            int rawRow = Mathf.FloorToInt(contentY / (cellSize.y + spacing.y));
             
-            // Adjust for different start corners
-            switch (gridLayout.startCorner)
+            // Now, adjust these raw coordinates based on the GridLayoutGroup's startCorner
+            int finalCol = rawCol;
+            int finalRow = rawRow;
+
+            // If the start corner is on the right, the column order is reversed.
+            if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight || gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
             {
-                case GridLayoutGroup.Corner.UpperLeft:
-                    localPoint += rectTransform.rect.size * 0.5f;
-                    break;
-                case GridLayoutGroup.Corner.UpperRight:
-                    localPoint += new Vector2(-rectTransform.rect.size.x * 0.5f, rectTransform.rect.size.y * 0.5f);
-                    break;
-                case GridLayoutGroup.Corner.LowerLeft:
-                    localPoint += new Vector2(rectTransform.rect.size.x * 0.5f, -rectTransform.rect.size.y * 0.5f);
-                    break;
-                case GridLayoutGroup.Corner.LowerRight:
-                    localPoint -= rectTransform.rect.size * 0.5f;
-                    break;
+                finalCol = (gridWidth - 1) - rawCol;
             }
 
-            // Adjust for padding
-            localPoint -= padding;
-
-            // Calculate grid position based on start axis
-            int gridX, gridY;
-            if (gridLayout.startAxis == GridLayoutGroup.Axis.Horizontal)
+            // If the start corner is at the top, the row order is reversed.
+            if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperLeft || gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight)
             {
-                gridX = Mathf.FloorToInt(localPoint.x / (cellSize.x + spacing.x));
-                gridY = Mathf.FloorToInt(localPoint.y / (cellSize.y + spacing.y));
-
-                // Reverse if needed based on start corner
-                if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight || 
-                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
-                {
-                    gridX = gridWidth - 1 - gridX;
-                }
-                if (gridLayout.startCorner == GridLayoutGroup.Corner.LowerLeft || 
-                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
-                {
-                    gridY = gridHeight - 1 - gridY;
-                }
-            }
-            else // Vertical
-            {
-                gridX = Mathf.FloorToInt(localPoint.x / (cellSize.x + spacing.x));
-                gridY = Mathf.FloorToInt(localPoint.y / (cellSize.y + spacing.y));
-
-                // Swap X and Y for vertical layout (IDE0180)
-                (gridY, gridX) = (gridX, gridY);
-
-                // Reverse if needed based on start corner
-                if (gridLayout.startCorner == GridLayoutGroup.Corner.UpperRight || 
-                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
-                {
-                    gridX = gridWidth - 1 - gridX;
-                }
-                if (gridLayout.startCorner == GridLayoutGroup.Corner.LowerLeft || 
-                    gridLayout.startCorner == GridLayoutGroup.Corner.LowerRight)
-                {
-                    gridY = gridHeight - 1 - gridY;
-                }
+                finalRow = (gridHeight - 1) - rawRow;
             }
 
-            // Clamp to grid boundaries
-            gridX = Mathf.Clamp(gridX, 0, gridWidth - 1);
-            gridY = Mathf.Clamp(gridY, 0, gridHeight - 1);
+            // Clamp values to be within the grid boundaries
+            finalCol = Mathf.Clamp(finalCol, 0, gridWidth - 1);
+            finalRow = Mathf.Clamp(finalRow, 0, gridHeight - 1);
             
-            // Calculate final index based on layout
+            // Calculate the final 1D index based on the startAxis
             int targetIndex;
             if (gridLayout.startAxis == GridLayoutGroup.Axis.Horizontal)
             {
-                targetIndex = gridY * gridWidth + gridX;
+                targetIndex = finalRow * gridWidth + finalCol;
             }
-            else
+            else // Vertical Axis
             {
-                targetIndex = gridX * gridHeight + gridY;
+                targetIndex = finalCol * gridHeight + finalRow;
             }
 
+            // --- Final Check and Inventory Update ---
             if (targetIndex >= 0 && targetIndex < slots.Length && inventory.SlotEmpty(targetIndex))
             {
-                Debug.Log(targetIndex);
+                Debug.Log($"Dropped on slot: {targetIndex} (Col: {finalCol}, Row: {finalRow})");
                 
                 inventory.RemoveIcon(droppedSlot.index);
                 inventory.InsertIcon(targetIndex, draggedIcon);
                 SaveInventoryState();
                 RefreshAllSlots();
+            }
+            else
+            {
+                // Optional: handle dropping on an occupied slot or outside the grid
+                Debug.Log($"Target slot {targetIndex} is occupied or invalid. Reverting.");
+                // No changes needed, the icon will snap back as we don't refresh.
             }
         }
     }
@@ -200,10 +177,5 @@ public class DesktopManager : InventoryPhysical
         }
 
         return closest;
-    }
-
-    void OnApplicationQuit()
-    {
-        SaveInventoryState();
     }
 }
