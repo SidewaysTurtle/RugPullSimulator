@@ -7,15 +7,15 @@ using TMPro;
 
 public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandler, IEndDragHandler
 {
-    public delegate void OnIconBeginDrag(IconInventorySlotManager iconInventorySlot);
+    public delegate void OnIconBeginDrag(DesktopIcon iconInventorySlot);
     public static event OnIconBeginDrag OnBeginDragEvent;
-    public delegate void OnDoubleClick(IconInventorySlotManager slot);
+    public delegate void OnDoubleClick(DesktopIcon slot);
     public static event OnDoubleClick OnDoubleClickEvent;
     public delegate void OnEndDragged(Vector3 position);
     public static event OnEndDragged OnEndDraggedEvent; // For mouse position, but its not really used
-    public delegate void OnIconDrop(IconInventorySlotManager iconInventorySlot);
+    public delegate void OnIconDrop(DesktopIcon iconInventorySlot);
     public static event OnIconDrop OnDropEvent;
-    public IconInventorySlotManager self;
+    public DesktopIcon self;
     public DragUI dragUI;
 
     private struct DragVisual
@@ -94,7 +94,7 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     }
 
     private DragVisual currentDragVisual;
-    private IconInventorySlotManager currentDraggedSlot;
+    private DesktopIcon currentDraggedSlot;
     private Vector3 dragOffset; // Store offset between mouse and icon
 
     private void SetupDragVisual()

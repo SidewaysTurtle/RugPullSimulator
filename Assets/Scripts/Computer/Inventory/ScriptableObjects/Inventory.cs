@@ -1,5 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
+using Unity.Collections;
+using System;
 
 [CreateAssetMenu(menuName = "Inventory/Inventory", fileName = "Inventory.asset")]
 [System.Serializable]
@@ -92,7 +95,7 @@ public class Inventory : ScriptableObject
     /// <returns>Array of indices that contain icons</returns>
     public int[] GetFilledSlots()
     {
-        List<int> filledSlots = new List<int>();
+        List<int> filledSlots = new();
         for (int i = 0; i < inventory.Length; i++)
         {
             if (!SlotEmpty(i))

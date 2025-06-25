@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class IconInventorySlotManager : IconInventorySlot
+public class DesktopIcon : IconInventorySlot
 {
     [SerializeField] private TextMeshProUGUI textObject;
     [SerializeField] private Image imageObject;
@@ -109,7 +109,7 @@ public class IconInventorySlotManager : IconInventorySlot
         return textObject.text;
     }
 
-    public void TransferDataFrom(IconInventorySlotManager source)
+    public void TransferDataFrom(DesktopIcon source)
     {
         if (source == null) return;
         

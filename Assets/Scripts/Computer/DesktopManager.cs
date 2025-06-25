@@ -4,7 +4,7 @@ using SerializedJSONSystem;
 
 public class DesktopManager : InventoryPhysical
 {
-    [SerializeField] private IconInventorySlotManager[] slots;
+    [SerializeField] private DesktopIcon[] slots;
     [SerializeField] private int gridWidth = 12;
     [SerializeField] private int gridHeight = 4;
     [SerializeField] GridLayoutGroup gridLayout;
@@ -22,9 +22,11 @@ public class DesktopManager : InventoryPhysical
         // Get all slots if not assigned in inspector
         if (slots == null || slots.Length == 0)
         {
-            slots = GetComponentsInChildren<IconInventorySlotManager>();
+            slots = GetComponentsInChildren<DesktopIcon>();
         }
 
+        // So in reality I believe this takes the inventory and makes the physical inventory
+        // from that, and to that it reads the json, and then the scriptable object
         RefreshAllSlots();
         DragManager.OnDropEvent += HandleDrop;
 
@@ -52,30 +54,17 @@ public class DesktopManager : InventoryPhysical
             Icon icon;
             if (inventory.GetIcon(filledSlots[i], out icon))
             {
-                slots[i].SetIcon(icon, filledSlots[i]);
+                slots[filledSlots[i]].SetIcon(icon, filledSlots[i]);
             }
         }
     }
-
-    public bool IsSlotEmpty(int index)
-    {
-        Icon icon;
-        return !inventory.GetIcon(index, out icon);
-    }
-
-    public bool IsSlotEmpty(IconInventorySlot slot)
-    {
-        var slotManager = slot.GetComponent<IconInventorySlotManager>();
-        // Check if the slot's content is visible
-        return slotManager.IsEmpty();
-    }
-
-    private void HandleDrop(IconInventorySlotManager droppedSlot)
+    private void HandleDrop(DesktopIcon droppedSlot)
     {
         if (droppedSlot == null) return;
-
+        // It checks if the inventory is synced with the slots 
         if (!inventory.GetIcon(droppedSlot.index, out Icon draggedIcon))
         {
+            Debug.LogError("[DesktopManager]: Dragged icon not found in inventory for slot index: " + droppedSlot.index);
             RefreshAllSlots();
             return;
         }
@@ -164,7 +153,7 @@ public class DesktopManager : InventoryPhysical
                 targetIndex = gridX * gridHeight + gridY;
             }
 
-            if (targetIndex >= 0 && targetIndex < slots.Length && IsSlotEmpty(targetIndex))
+            if (targetIndex >= 0 && targetIndex < slots.Length && inventory.SlotEmpty(targetIndex))
             {
                 Debug.Log(targetIndex);
                 
