@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 [System.Serializable]
@@ -10,6 +11,15 @@ public abstract class IconInventorySlot : MonoBehaviour
     {
         InventoryPhysical.OnSetSlotEvent += SetSlot;
         InventoryPhysical.OnRemoveSlotEvent += RemoveSlot;
+    }
+
+    public virtual void SetIcon(Icon icon, int slotIndex)
+    {
+
+    }
+
+    public virtual void ClearSlot()
+    {
     }
 
     public virtual void OnBeginDrag()

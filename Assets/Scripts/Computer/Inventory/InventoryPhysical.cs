@@ -15,7 +15,9 @@ public class InventoryPhysical : MonoBehaviour
     public static event OnCreateWindow OnCreateWindowEvent;
     
     // Instance of the inventory Scriptable Object
-    [SerializeField] protected Inventory inventory;
+    protected Inventory inventory;
+    protected IconInventorySlot[] slots;
+    [SerializeField] protected string KeyName = "Desktop";
 
     // public: gets used in drag manager
 
@@ -66,14 +68,13 @@ public class InventoryPhysical : MonoBehaviour
     {
         if (inventory != null)
         {
-            SerializedJSON<Inventory>.SaveScriptableObject(inventory, gameObject.scene.name + "_desktop");
+            SerializedJSON<Inventory>.SaveScriptableObject(KeyName, inventory);
         }
     }
 
     [ContextMenu("Delete Saved Desktop JSON")]
     public void DeleteSavedDesktopJSON()
     {
-        string fileName = gameObject.scene.name + "_desktop";
-        SerializedJSON<Inventory>.DeleteScriptableObject(fileName);
+        SerializedJSON<Inventory>.DeleteScriptableObject(KeyName);
     }
 }

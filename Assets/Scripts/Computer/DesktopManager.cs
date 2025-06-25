@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 
 public class DesktopManager : InventoryPhysical
 {
-    [SerializeField] private DesktopIcon[] slots;
     [SerializeField] GridLayoutGroup gridLayout;
 
     void Start()
@@ -26,6 +25,7 @@ public class DesktopManager : InventoryPhysical
 
         // So in reality I believe this takes the inventory and makes the physical inventory
         // from that, and to that it reads the json, and then the scriptable object
+
         RefreshAllSlots();
         DragManager.OnDropEvent += HandleDrop;
 
@@ -179,38 +179,11 @@ public class DesktopManager : InventoryPhysical
 
     private void SaveInventoryState()
     {
-        SerializedJSON<Inventory>.SaveScriptableObject(inventory, gameObject.scene.name + "_desktop");
+        SerializedJSON<Inventory>.SaveScriptableObject(KeyName, inventory);
     }
 
     private void LoadInventoryState()
     {
-        SerializedJSON<Inventory>.LoadScriptableObject(gameObject.scene.name + "_desktop", out inventory);
-        if (inventory == null)
-        {
-            // If no saved state exists, create a new inventory
-            inventory = ScriptableObject.CreateInstance<Inventory>();
-        }
-    }
-
-    private IconInventorySlot FindClosestSlot(IconInventorySlot droppedSlot)
-    {
-        float smallestDistance = float.MaxValue;
-        IconInventorySlot closest = null;
-
-        foreach (var slot in slots)
-        {
-            float distance = Vector3.Distance(
-                droppedSlot.transform.position, 
-                slot.transform.position
-            );
-            
-            if (distance < smallestDistance)
-            {
-                smallestDistance = distance;
-                closest = slot;
-            }
-        }
-
-        return closest;
+        SerializedJSON<Inventory>.LoadScriptableObject(KeyName, out inventory);
     }
 }

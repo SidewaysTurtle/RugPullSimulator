@@ -22,7 +22,7 @@ public class DesktopIcon : IconInventorySlot
         SetAlpha(0);
     }
 
-    public void SetIcon(Icon icon, int slotIndex)
+    public override void SetIcon(Icon icon, int slotIndex)
     {
         index = slotIndex;  // Make sure we store the index
         if (icon == null) 
@@ -42,7 +42,7 @@ public class DesktopIcon : IconInventorySlot
         }
     }
 
-    public void ClearSlot()
+    public override void ClearSlot()
     {
         textObject.text = "";
         SetAlpha(0);

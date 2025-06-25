@@ -12,14 +12,12 @@ using SerializedJSONSystem;
 //requireComponent:
 [CreateAssetMenu(menuName = "Icons/Text", fileName = "TextName.asset")]
 [System.Serializable]
-public class TextIcon : ScriptableObject {
+public class TextIcon : Icon {
     public enum TextType { Json, Lua, txt }
     public TextType textType;
     public string FileData;
 
-    public Sprite image;
-
-    public void Awake()
+    public void OnEnabled()
     {
         image = Resources.Load<Sprite>("Art/UI/file.png");
     }

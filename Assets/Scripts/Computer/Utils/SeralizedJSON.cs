@@ -47,8 +47,8 @@ namespace SerializedJSONSystem
         public static void LoadScriptableObject(string filename, out T _instance)
         {
             string jsonPath = GetSavePath(filename);
-            string resourcesPath = "Computer/Inventory/" + filename.Split('.')[0];
-
+            string resourcesPath = "Computer/Inventory/" + filename;
+            
             if (File.Exists(jsonPath))
             {
                 Debug.Log($"Loading from: {jsonPath}");
@@ -56,20 +56,12 @@ namespace SerializedJSONSystem
             }
             else
             {
-                try
-                {
-                    Debug.Log($"No save file found at {jsonPath}, loading from resources: {resourcesPath}");
-                    LoadFromResources(resourcesPath, out _instance);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.Log($"No resources found at {resourcesPath}, creating new instance.\n{e.Message}");
-                    _instance = ScriptableObject.CreateInstance<T>();
-                }
+                Debug.LogWarning($"No save file found at: {jsonPath}. Attempting to load from Resources.");
+                LoadFromResources(resourcesPath, out _instance);
             }
         }
 
-        public static void SaveScriptableObject(T scriptableObject, string filename)
+        public static void SaveScriptableObject(string filename, T scriptableObject)
         {
             string jsonPath = GetSavePath(filename);
             SaveToJSON(scriptableObject, jsonPath);
