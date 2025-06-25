@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using SerializedJSONSystem;
+using UnityEngine.InputSystem;
 
 public class DesktopManager : InventoryPhysical
 {
@@ -56,10 +57,17 @@ public class DesktopManager : InventoryPhysical
             }
         }
     }
-    private void HandleDrop(DesktopIcon droppedSlot)
+    private void HandleDrop(DesktopIcon droppedSlot, Vector2 screenPos)
     {
         if (droppedSlot == null) return;
-        
+
+        if (!(screenPos.x >= 0 && screenPos.x <= Screen.width && screenPos.y >= 0 && screenPos.y <= Screen.height))
+        {
+            // Dropped outside the grid: revert to original position (no change)
+            Debug.Log($"[DesktopManager]: Dropped outside desktop enviroment.");
+            RefreshAllSlots();
+            return;
+        }
         if (!inventory.GetIcon(droppedSlot.index, out Icon draggedIcon))
         {
             Debug.LogError("[DesktopManager]: Dragged icon not found in inventory for slot index: " + droppedSlot.index);
@@ -91,7 +99,7 @@ public class DesktopManager : InventoryPhysical
             // Calculate the raw column and row, assuming origin is bottom-left
             int rawCol = Mathf.FloorToInt(contentX / (cellSize.x + spacing.x));
             int rawRow = Mathf.FloorToInt(contentY / (cellSize.y + spacing.y));
-            
+
             // Now, adjust these raw coordinates based on the GridLayoutGroup's startCorner
             int finalCol = rawCol;
             int finalRow = rawRow;
@@ -111,7 +119,7 @@ public class DesktopManager : InventoryPhysical
             // Clamp values to be within the grid boundaries
             finalCol = Mathf.Clamp(finalCol, 0, gridWidth - 1);
             finalRow = Mathf.Clamp(finalRow, 0, gridHeight - 1);
-            
+
             // Calculate the final 1D index based on the startAxis
             int targetIndex;
             if (gridLayout.startAxis == GridLayoutGroup.Axis.Horizontal)
@@ -124,20 +132,47 @@ public class DesktopManager : InventoryPhysical
             }
 
             // --- Final Check and Inventory Update ---
-            if (targetIndex >= 0 && targetIndex < slots.Length && inventory.SlotEmpty(targetIndex))
+            if (targetIndex >= 0 && targetIndex < slots.Length)
             {
-                Debug.Log($"Dropped on slot: {targetIndex} (Col: {finalCol}, Row: {finalRow})");
-                
-                inventory.RemoveIcon(droppedSlot.index);
-                inventory.InsertIcon(targetIndex, draggedIcon);
-                SaveInventoryState();
-                RefreshAllSlots();
+                if (inventory.SlotEmpty(targetIndex))
+                {
+                    Debug.Log($"Dropped on slot: {targetIndex} (Col: {finalCol}, Row: {finalRow})");
+
+                    inventory.RemoveIcon(droppedSlot.index);
+                    inventory.InsertIcon(targetIndex, draggedIcon);
+                    SaveInventoryState();
+                    RefreshAllSlots();
+                }
+                else
+                {
+                    // Slot is occupied: swap icons
+                    Debug.Log($"Target slot {targetIndex} is occupied. Swapping icons.");
+
+                    if (inventory.GetIcon(targetIndex, out Icon targetIcon))
+                    {
+                        // Remove both icons
+                        inventory.RemoveIcon(droppedSlot.index);
+                        inventory.RemoveIcon(targetIndex);
+
+                        // Insert swapped icons
+                        inventory.InsertIcon(targetIndex, draggedIcon);
+                        inventory.InsertIcon(droppedSlot.index, targetIcon);
+
+                        SaveInventoryState();
+                        RefreshAllSlots();
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Could not retrieve icon at occupied slot {targetIndex} for swapping.");
+                        RefreshAllSlots();
+                    }
+                }
             }
             else
             {
-                // Optional: handle dropping on an occupied slot or outside the grid
-                Debug.Log($"Target slot {targetIndex} is occupied or invalid. Reverting.");
-                // No changes needed, the icon will snap back as we don't refresh.
+                // Invalid slot index: revert to original position (no change)
+                Debug.Log($"Dropped on invalid slot index: {targetIndex}. Reverting to original position.");
+                RefreshAllSlots();
             }
         }
     }

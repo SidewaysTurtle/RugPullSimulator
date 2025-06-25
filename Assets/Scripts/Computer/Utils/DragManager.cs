@@ -13,7 +13,7 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
     public static event OnDoubleClick OnDoubleClickEvent;
     public delegate void OnEndDragged(Vector3 position);
     public static event OnEndDragged OnEndDraggedEvent; // For mouse position, but its not really used
-    public delegate void OnIconDrop(DesktopIcon iconInventorySlot);
+    public delegate void OnIconDrop(DesktopIcon iconInventorySlot, Vector2 position);
     public static event OnIconDrop OnDropEvent;
     public DesktopIcon self;
     public DragUI dragUI;
@@ -95,7 +95,14 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
 
     private DragVisual currentDragVisual;
     private DesktopIcon currentDraggedSlot;
-    private Vector3 dragOffset; // Store offset between mouse and icon
+    private Vector2 dragOffset; // Store offset between mouse and icon
+    private Canvas parentCanvas;
+
+    private void Awake()
+    {
+        // Find the parent canvas for proper drag visual positioning
+        parentCanvas = GetComponentInParent<Canvas>();
+    }
 
     private void SetupDragVisual()
     {
@@ -111,21 +118,34 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
 
     public void OnBeginDrag(PointerEventData eventdata)
     {
-        // Only allow drag if the slot is not empty
-        if (self != null && !self.IsEmpty())
+        // Only allow drag if the slot is not empty and no drag is currently active
+        if (self != null && !self.IsEmpty() && currentDraggedSlot == null)
         {
+            // Clean up any existing drag visual (safety check)
+            if (currentDragVisual.visualObject != null)
+            {
+                currentDragVisual.Destroy();
+            }
+            
             currentDraggedSlot = self;
-            currentDragVisual.Initialize(transform, 
+            
+            // Use the canvas transform as parent for proper positioning
+            Transform canvasTransform = parentCanvas != null ? parentCanvas.transform : transform;
+            currentDragVisual.Initialize(canvasTransform, 
                 currentDraggedSlot.GetIconSprite(), 
-                currentDraggedSlot.GetIconText());
+                currentDraggedSlot.GetIconText()
+            );
             SetupDragVisual();
             currentDraggedSlot.OnBeginDrag();
             OnBeginDragEvent?.Invoke(self);
-            // Calculate offset between mouse and icon position
+            
+            // Calculate offset in screen space for consistent positioning
             RectTransform slotRect = currentDraggedSlot.GetComponent<RectTransform>();
-            Vector2 localMousePos;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(slotRect, eventdata.position, eventdata.pressEventCamera, out localMousePos);
-            dragOffset = localMousePos;
+            Vector3 slotScreenPos = RectTransformUtility.WorldToScreenPoint(eventdata.pressEventCamera, slotRect.position);
+            dragOffset = eventdata.position - (Vector2)slotScreenPos;
+            
+            // Set initial position of drag visual
+            currentDragVisual.UpdatePosition(dragOffset);
         }
     }
 
@@ -134,9 +154,9 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
         if (currentDraggedSlot != null)
         {
             // Place the drag visual at the mouse position minus the offset
-            Vector3 mousePos = Input.mousePosition;
-            Vector3 worldPos = mousePos - dragOffset;
-            currentDragVisual.UpdatePosition(worldPos);
+            Vector2 mousePos = Input.mousePosition;
+            Vector2 adjustedPos = mousePos - dragOffset;
+            currentDragVisual.UpdatePosition(adjustedPos);
         }
     }
 
@@ -146,10 +166,22 @@ public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandle
         {
             currentDraggedSlot.OnEndDrag();
             currentDragVisual.Destroy();
+
             OnEndDraggedEvent?.Invoke(eventdata.position);
-            OnDropEvent?.Invoke(currentDraggedSlot); // This should be correct, as currentDraggedSlot is the slot being dragged
+            OnDropEvent?.Invoke(currentDraggedSlot, eventdata.position);
+            
             currentDraggedSlot = null;
         }
+    }
+
+    private void OnDisable()
+    {
+        // Clean up drag visual if the component is disabled
+        if (currentDragVisual.visualObject != null)
+        {
+            currentDragVisual.Destroy();
+        }
+        currentDraggedSlot = null;
     }
 
     void IPointerClickHandler.OnPointerClick(PointerEventData eventData)

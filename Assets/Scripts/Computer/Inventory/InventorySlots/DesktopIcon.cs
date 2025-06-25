@@ -87,7 +87,7 @@ public class DesktopIcon : IconInventorySlot
     {
         if (!IsEmpty())
         {
-            SetAlpha(0.4f); // Make semi-transparent during drag
+            SetAlpha(0f);
         }
     }
 
@@ -95,7 +95,7 @@ public class DesktopIcon : IconInventorySlot
     {
         if (!IsEmpty())
         {
-            SetAlpha(1f); // Restore full opacity after drag
+            SetAlpha(1f);
         }
     }
 
