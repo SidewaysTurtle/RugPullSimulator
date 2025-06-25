@@ -2,11 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using SerializedJSONSystem;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
-public class DesktopManager : InventoryPhysical
+public class DesktopManager : InventoryPhysical, IPointerClickHandler
 {
     [SerializeField] GridLayoutGroup gridLayout;
-
+    
     void Start()
     {
         LoadInventoryState();
@@ -35,6 +36,16 @@ public class DesktopManager : InventoryPhysical
     void OnDestroy()
     {
         IconInputManager.OnDropEvent -= HandleDrop;
+    }
+
+    // Handle clicks on empty desktop areas to clear focus
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // Clear focus when clicking on empty desktop space
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
 
     public void RefreshAllSlots()

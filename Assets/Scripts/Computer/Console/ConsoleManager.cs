@@ -13,7 +13,6 @@ namespace Console
         [SerializeField] InputField _CurrentInput;
         [SerializeField] GameObject _CurrentInputModule;
         [SerializeField] VerticalLayoutGroup _vertLayoutGroup;
-        [SerializeField] Inventory _ConsoleCommands;
         [SerializeField] GameObject _Command;
         [SerializeField] GameObject _Response;
         [SerializeField] GameObject _Input;

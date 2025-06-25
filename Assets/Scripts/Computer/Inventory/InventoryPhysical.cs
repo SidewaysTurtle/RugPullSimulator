@@ -17,7 +17,7 @@ public class InventoryPhysical : MonoBehaviour
     // Instance of the inventory Scriptable Object
     protected Inventory inventory;
     protected IconInventorySlot[] slots;
-    [SerializeField] protected string KeyName = "Desktop";
+    [SerializeField] protected string KeyName = "Inventory";
 
     // public: gets used in drag manager
 

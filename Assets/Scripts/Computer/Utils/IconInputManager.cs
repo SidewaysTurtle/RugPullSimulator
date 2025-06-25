@@ -186,9 +186,79 @@ public class IconInputManager : MonoBehaviour, IBeginDragHandler, IPointerClickH
 
     void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.clickCount == 2)
+        // Skip click processing if we're in the middle of a drag operation
+        if (currentDraggedSlot != null) return;
+        
+        // Skip processing if this slot is empty
+        if (self == null || self.IsEmpty()) return;
+
+        float currentTime = Time.time;
+        
+        // Determine click type based on mouse button
+        ClickType clickType = ClickType.Left;
+        switch (eventData.button)
         {
-            OnDoubleClickEvent?.Invoke(self);
+            case PointerEventData.InputButton.Left:
+                clickType = ClickType.Left;
+                break;
+            case PointerEventData.InputButton.Right:
+                clickType = ClickType.Right;
+                break;
+            case PointerEventData.InputButton.Middle:
+                clickType = ClickType.Middle;
+                break;
         }
+
+        // Handle double click detection for left mouse button
+        if (clickType == ClickType.Left)
+        {
+            if (eventData.clickCount == 2)
+            {
+                HandleDoubleClick();
+                UnFocus();
+                return;
+            }
+            else
+            {
+                HandleSingleClick(clickType);
+                SetFocusToIcon();
+                return;
+            }
+        }
+        else
+        {
+            // For right and middle clicks, handle immediately
+            HandleSingleClick(clickType);
+        }
+    }
+    private void UnFocus()
+    {
+        EventSystem.current.SetSelectedGameObject(null);
+     }
+    private void SetFocusToIcon()
+    {
+        // Use Unity's EventSystem to set focus
+        if (EventSystem.current != null && self.PhysicalRepresentation != null)
+        {
+            EventSystem.current.SetSelectedGameObject(self.PhysicalRepresentation);
+        }
+    }
+
+    private void HandleSingleClick(ClickType clickType)
+    {
+        Icon iconData = self.GetCurrentIcon();
+        if (iconData == null) return;
+
+        // Check if this icon was already focused when clicked
+        bool wasAlreadyFocused = self.IsFocused();
+        
+        // Trigger the appropriate click event
+        iconData.InvokeClickEvent(clickType, wasAlreadyFocused);
+    }
+
+    private void HandleDoubleClick()
+    {
+        // Trigger the existing double click event for backward compatibility
+        OnDoubleClickEvent?.Invoke(self);
     }
 }
