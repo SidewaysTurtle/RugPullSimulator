@@ -27,14 +27,14 @@ public class DesktopManager : InventoryPhysical
         // from that, and to that it reads the json, and then the scriptable object
 
         RefreshAllSlots();
-        DragManager.OnDropEvent += HandleDrop;
+        IconInputManager.OnDropEvent += HandleDrop;
 
         SaveInventoryState(); // Ensure initial state is saved
     }
 
     void OnDestroy()
     {
-        DragManager.OnDropEvent -= HandleDrop;
+        IconInputManager.OnDropEvent -= HandleDrop;
     }
 
     public void RefreshAllSlots()

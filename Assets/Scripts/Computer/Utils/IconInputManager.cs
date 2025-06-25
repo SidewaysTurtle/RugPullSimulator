@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-public class DragManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandler, IEndDragHandler
+public class IconInputManager : MonoBehaviour, IBeginDragHandler, IPointerClickHandler, IEndDragHandler
 {
     public delegate void OnIconBeginDrag(DesktopIcon iconInventorySlot);
     public static event OnIconBeginDrag OnBeginDragEvent;

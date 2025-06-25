@@ -24,7 +24,7 @@ public class InventoryPhysical : MonoBehaviour
     protected virtual void Awake() // Right after Awake in execution order
     {
         // it requires the inventory scriptable object
-        DragManager.OnDoubleClickEvent += DoubleClickEvent;
+        IconInputManager.OnDoubleClickEvent += DoubleClickEvent;
     }
     /// <summary>
     /// Populates the inventory with some icons.
