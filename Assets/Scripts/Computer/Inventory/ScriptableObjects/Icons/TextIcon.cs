@@ -17,7 +17,7 @@ public class TextIcon : Icon {
     public TextType textType;
     public string FileData;
 
-    public void OnEnabled()
+    public void OnEnable()
     {
         image = Resources.Load<Sprite>("Art/UI/file.png");
     }
